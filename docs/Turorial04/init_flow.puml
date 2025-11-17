@@ -1,0 +1,25 @@
+@startuml
+title Tutorial04 初始化与资源创建
+actor User
+participant WinMain
+participant "InitWindow" as IW
+participant "InitDevice" as ID
+participant "D3D11\nRuntime/GPU" as GPU
+
+User -> WinMain: 启动程序
+WinMain -> IW: 注册窗口类/创建窗口
+WinMain -> ID: InitDevice()
+ID -> GPU: D3D11CreateDeviceAndSwapChain(HWND, driverTypes, featureLevels, swapChainDesc)
+ID -> GPU: GetBuffer(0) + CreateRenderTargetView(back buffer)
+ID -> GPU: OMSetRenderTargets(RTV)
+ID -> GPU: RSSetViewports(viewport)
+ID -> GPU: D3DX11CompileFromFile(VS/PS)
+ID -> GPU: CreateVertexShader / CreatePixelShader
+ID -> GPU: CreateInputLayout(POSITION/COLOR)
+ID -> GPU: CreateBuffer(vertices -> VB)
+ID -> GPU: CreateBuffer(indices -> IB)
+ID -> GPU: CreateBuffer(ConstantBuffer -> CB)
+ID -> GPU: IASetVertexBuffers/IndexBuffer/PrimitiveTopology
+ID -> GPU: 初始化 World/View/Projection 矩阵
+WinMain <-- ID: S_OK
+@enduml

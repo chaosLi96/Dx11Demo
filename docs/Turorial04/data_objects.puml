@@ -1,0 +1,33 @@
+@startuml
+title Tutorial04 关键 Direct3D 对象关系
+
+class ID3D11Device
+class ID3D11DeviceContext
+class IDXGISwapChain
+class ID3D11RenderTargetView
+class ID3D11VertexShader
+class ID3D11PixelShader
+class ID3D11InputLayout
+class ID3D11Buffer {
+  +VertexBuffer
+  +IndexBuffer
+  +ConstantBuffer
+}
+
+ID3D11Device --> IDXGISwapChain : D3D11CreateDeviceAndSwapChain()
+IDXGISwapChain --> ID3D11RenderTargetView : GetBuffer(0)\nCreateRenderTargetView()
+ID3D11Device --> ID3D11RenderTargetView : CreateRenderTargetView()
+ID3D11Device --> ID3D11VertexShader : CreateVertexShader()
+ID3D11Device --> ID3D11PixelShader : CreatePixelShader()
+ID3D11Device --> ID3D11InputLayout : CreateInputLayout()
+ID3D11Device --> ID3D11Buffer : CreateBuffer()
+
+ID3D11DeviceContext --> ID3D11RenderTargetView : OMSetRenderTargets()
+ID3D11DeviceContext --> ID3D11InputLayout : IASetInputLayout()
+ID3D11DeviceContext --> ID3D11Buffer : IASetVertexBuffers()\nIASetIndexBuffer()\nVSSetConstantBuffers()
+ID3D11DeviceContext --> ID3D11VertexShader : VSSetShader()
+ID3D11DeviceContext --> ID3D11PixelShader : PSSetShader()
+ID3D11DeviceContext --> IDXGISwapChain : Present()
+ID3D11DeviceContext --> ID3D11RenderTargetView : ClearRenderTargetView()
+
+@enduml

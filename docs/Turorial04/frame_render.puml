@@ -1,0 +1,15 @@
+@startuml
+title Tutorial04 每帧渲染流程
+participant "Render()\nApp" as App
+participant "ID3D11DeviceContext" as DC
+participant "IDXGISwapChain" as SwapChain
+
+App -> App: 更新时间 t\n(参考设备固定步长，其他用 GetTickCount)
+App -> App: g_World = XMMatrixRotationY(t)
+App -> DC: ClearRenderTargetView(RTV, ClearColor)
+App -> DC: UpdateSubresource(CB, {World, View, Projection}^T)
+App -> DC: VSSetShader(g_pVertexShader)\nVSSetConstantBuffers(b0, CB)
+App -> DC: PSSetShader(g_pPixelShader)
+App -> DC: DrawIndexed(36, startIndex=0, baseVertex=0)
+App -> SwapChain: Present(syncInterval=0, flags=0)
+@enduml
