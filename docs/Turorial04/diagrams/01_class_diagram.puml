@@ -1,0 +1,61 @@
+@startuml Tutorial04_ClassDiagram
+!theme plain
+skinparam defaultFontName Microsoft YaHei
+skinparam classAttributeIconSize 0
+
+class SimpleVertex {
+    + XMFLOAT3 Pos
+    + XMFLOAT4 Color
+}
+
+class ConstantBuffer {
+    + XMMATRIX mWorld
+    + XMMATRIX mView
+    + XMMATRIX mProjection
+}
+
+class "Global Resources" as GlobalRes {
+    - HINSTANCE g_hInst
+    - HWND g_hWnd
+    - D3D_DRIVER_TYPE g_driverType
+    - D3D_FEATURE_LEVEL g_featureLevel
+    - ID3D11Device* g_pd3dDevice
+    - ID3D11DeviceContext* g_pImmediateContext
+    - IDXGISwapChain* g_pSwapChain
+    - ID3D11RenderTargetView* g_pRenderTargetView
+    - ID3D11VertexShader* g_pVertexShader
+    - ID3D11PixelShader* g_pPixelShader
+    - ID3D11InputLayout* g_pVertexLayout
+    - ID3D11Buffer* g_pVertexBuffer
+    - ID3D11Buffer* g_pIndexBuffer
+    - ID3D11Buffer* g_pConstantBuffer
+    - XMMATRIX g_World
+    - XMMATRIX g_View
+    - XMMATRIX g_Projection
+}
+
+class "Main Functions" as MainFunc {
+    + HRESULT InitWindow()
+    + HRESULT InitDevice()
+    + void CleanupDevice()
+    + void Render()
+    + LRESULT WndProc()
+    + HRESULT CompileShaderFromFile()
+}
+
+GlobalRes --> SimpleVertex : contains 8 vertices
+GlobalRes --> ConstantBuffer : updates per frame
+MainFunc ..> GlobalRes : manages
+
+note right of SimpleVertex
+    顶点结构体
+    - 位置：3D坐标
+    - 颜色：RGBA值
+end note
+
+note right of ConstantBuffer
+    常量缓冲区结构体
+    传递变换矩阵到着色器
+end note
+
+@enduml

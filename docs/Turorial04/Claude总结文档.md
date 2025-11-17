@@ -972,703 +972,105 @@ void CleanupDevice()
 
 ### 1. 类图 - 数据结构关系
 
-```plantuml
-@startuml Tutorial04_ClassDiagram
-!theme plain
-skinparam classAttributeIconSize 0
+![类图 - 数据结构关系](diagrams/Tutorial04_ClassDiagram.png)
 
-class SimpleVertex {
-    + XMFLOAT3 Pos
-    + XMFLOAT4 Color
-}
+**说明**: 展示了项目中的主要数据结构（SimpleVertex、ConstantBuffer）和全局资源的关系。
 
-class ConstantBuffer {
-    + XMMATRIX mWorld
-    + XMMATRIX mView
-    + XMMATRIX mProjection
-}
+[查看源文件](diagrams/01_class_diagram.puml)
 
-class "Global Resources" as GlobalRes {
-    - HINSTANCE g_hInst
-    - HWND g_hWnd
-    - D3D_DRIVER_TYPE g_driverType
-    - D3D_FEATURE_LEVEL g_featureLevel
-    - ID3D11Device* g_pd3dDevice
-    - ID3D11DeviceContext* g_pImmediateContext
-    - IDXGISwapChain* g_pSwapChain
-    - ID3D11RenderTargetView* g_pRenderTargetView
-    - ID3D11VertexShader* g_pVertexShader
-    - ID3D11PixelShader* g_pPixelShader
-    - ID3D11InputLayout* g_pVertexLayout
-    - ID3D11Buffer* g_pVertexBuffer
-    - ID3D11Buffer* g_pIndexBuffer
-    - ID3D11Buffer* g_pConstantBuffer
-    - XMMATRIX g_World
-    - XMMATRIX g_View
-    - XMMATRIX g_Projection
-}
-
-class "Main Functions" as MainFunc {
-    + HRESULT InitWindow()
-    + HRESULT InitDevice()
-    + void CleanupDevice()
-    + void Render()
-    + LRESULT WndProc()
-    + HRESULT CompileShaderFromFile()
-}
-
-GlobalRes --> SimpleVertex : contains 8 vertices
-GlobalRes --> ConstantBuffer : updates per frame
-MainFunc ..> GlobalRes : manages
-
-note right of SimpleVertex
-    顶点结构体
-    - 位置：3D坐标
-    - 颜色：RGBA值
-end note
-
-note right of ConstantBuffer
-    常量缓冲区结构体
-    传递变换矩阵到着色器
-end note
-
-@enduml
-```
+---
 
 ### 2. 组件图 - DirectX 11 渲染管线
 
-```plantuml
-@startuml Tutorial04_ComponentDiagram
-!theme plain
+![组件图 - DirectX 11 渲染管线](diagrams/Tutorial04_ComponentDiagram.png)
 
-package "Application Layer" {
-    [WinMain] as main
-    [Window Procedure] as winproc
-    [Render Loop] as render
-}
+**说明**: 展示了应用程序、DirectX 11设备、资源和渲染管线之间的组件关系。
 
-package "Initialization" {
-    [InitWindow] as initwin
-    [InitDevice] as initdev
-    [CompileShader] as compile
-}
+[查看源文件](diagrams/02_component_diagram.puml)
 
-package "DirectX 11 Device" {
-    [ID3D11Device] as device
-    [ID3D11DeviceContext] as context
-    [IDXGISwapChain] as swapchain
-}
-
-package "Resources" {
-    [Vertex Buffer] as vb
-    [Index Buffer] as ib
-    [Constant Buffer] as cb
-    [Vertex Shader] as vs
-    [Pixel Shader] as ps
-    [Input Layout] as layout
-    [Render Target View] as rtv
-}
-
-package "Rendering Pipeline" {
-    [Input Assembler] as ia
-    [Vertex Shader Stage] as vsstage
-    [Rasterizer] as raster
-    [Pixel Shader Stage] as psstage
-    [Output Merger] as om
-}
-
-package "HLSL Files" {
-    [Tutorial04.fx] as shader
-}
-
-main --> initwin
-main --> initdev
-main --> render
-
-initdev --> device : creates
-initdev --> context : creates
-initdev --> swapchain : creates
-
-device --> vb : CreateBuffer
-device --> ib : CreateBuffer
-device --> cb : CreateBuffer
-device --> vs : CreateVertexShader
-device --> ps : CreatePixelShader
-device --> layout : CreateInputLayout
-device --> rtv : CreateRenderTargetView
-
-compile --> shader : reads
-shader --> vs : compiles VS()
-shader --> ps : compiles PS()
-
-context --> ia : IASet系列
-context --> vsstage : VSSet系列
-context --> psstage : PSSetShader
-context --> om : OMSet系列
-
-ia --> vb : binds
-ia --> ib : binds
-ia --> layout : binds
-
-vsstage --> vs : binds
-vsstage --> cb : binds
-
-psstage --> ps : binds
-
-om --> rtv : binds
-
-render --> context : uses
-context --> swapchain : Present()
-
-@enduml
-```
+---
 
 ### 3. 架构图 - 系统分层结构
 
-```plantuml
-@startuml Tutorial04_Architecture
-!theme plain
+![架构图 - 系统分层结构](diagrams/Tutorial04_Architecture.png)
 
-rectangle "应用程序层" as app {
-    rectangle "Windows 消息循环" as msgloop
-    rectangle "渲染主循环" as renderloop
-}
+**说明**: 展示了从应用程序层到GPU硬件的完整系统分层架构。
 
-rectangle "初始化层" as init {
-    rectangle "窗口初始化" as wininit
-    rectangle "设备初始化" as devinit
-    rectangle "资源创建" as rescreate
-}
+[查看源文件](diagrams/03_architecture_diagram.puml)
 
-rectangle "DirectX 11 API 层" as dx11 {
-    rectangle "设备管理" as devmgmt {
-        rectangle "ID3D11Device" as dev
-        rectangle "ID3D11DeviceContext" as ctx
-    }
-    
-    rectangle "资源管理" as resmgmt {
-        rectangle "缓冲区" as buffers
-        rectangle "着色器" as shaders
-        rectangle "视图" as views
-    }
-    
-    rectangle "渲染管线" as pipeline {
-        rectangle "IA阶段" as ia
-        rectangle "VS阶段" as vs
-        rectangle "Rasterizer" as rs
-        rectangle "PS阶段" as ps
-        rectangle "OM阶段" as om
-    }
-}
-
-rectangle "DXGI 层" as dxgi {
-    rectangle "IDXGISwapChain" as sc
-    rectangle "后台缓冲区" as bb
-}
-
-rectangle "GPU 硬件" as gpu {
-    rectangle "图形处理单元" as gp
-    rectangle "显存" as vram
-}
-
-app --> init : 调用初始化
-init --> dx11 : 创建设备和资源
-dx11 --> dxgi : 管理交换链
-dxgi --> gpu : 驱动调用
-renderloop --> ctx : 每帧渲染命令
-ctx --> pipeline : 执行渲染管线
-pipeline --> gpu : 提交绘制命令
-sc --> bb : 交换缓冲区
-
-@enduml
-```
+---
 
 ### 4. 部署图 - 文件组织结构
 
-```plantuml
-@startuml Tutorial04_Deployment
-!theme plain
+![部署图 - 文件组织结构](diagrams/Tutorial04_Deployment.png)
 
-node "Tutorial04 项目" {
-    artifact "Tutorial04.cpp" as cpp {
-        + 主程序代码
-        + DirectX 初始化
-        + 渲染循环
-    }
-    
-    artifact "Tutorial04.fx" as fx {
-        + HLSL 着色器代码
-        + VS() 顶点着色器
-        + PS() 像素着色器
-    }
-    
-    artifact "resource.h" as rh {
-        + 资源定义
-    }
-    
-    artifact "Tutorial04.rc" as rc {
-        + 资源脚本
-    }
-    
-    folder "DXUT" as dxut {
-        artifact "DXUT 辅助库"
-    }
-}
+**说明**: 展示了项目文件、编译产物和运行时依赖的组织关系。
 
-node "编译产物" {
-    artifact "Tutorial04.exe" as exe {
-        + 可执行程序
-    }
-    
-    artifact "编译后的着色器" as cso {
-        + VS字节码
-        + PS字节码
-    }
-}
+[查看源文件](diagrams/04_deployment_diagram.puml)
 
-node "运行时依赖" {
-    artifact "d3d11.dll" as d3d11
-    artifact "dxgi.dll" as dxgidll
-    artifact "d3dcompiler.dll" as d3dcomp
-}
-
-cpp --> exe : 编译
-fx --> cso : 编译
-exe --> d3d11 : 链接
-exe --> dxgidll : 链接
-exe --> d3dcomp : 运行时加载
-
-@enduml
-```
+---
 
 ### 5. 对象图 - 运行时对象关系
 
-```plantuml
-@startuml Tutorial04_ObjectDiagram
-!theme plain
+![对象图 - 运行时对象关系](diagrams/Tutorial04_ObjectDiagram.png)
 
-object "g_pd3dDevice" as device {
-    type = ID3D11Device*
-    功能 = 创建资源
-}
+**说明**: 展示了运行时所有DirectX 11对象实例及其相互关系。
 
-object "g_pImmediateContext" as context {
-    type = ID3D11DeviceContext*
-    功能 = 执行渲染命令
-}
+[查看源文件](diagrams/05_object_diagram.puml)
 
-object "g_pSwapChain" as swapchain {
-    type = IDXGISwapChain*
-    BufferCount = 1
-    Format = DXGI_FORMAT_R8G8B8A8_UNORM
-}
-
-object "g_pVertexBuffer" as vb {
-    type = ID3D11Buffer*
-    Usage = D3D11_USAGE_DEFAULT
-    ByteWidth = 224 (8顶点×28字节)
-    BindFlags = D3D11_BIND_VERTEX_BUFFER
-}
-
-object "g_pIndexBuffer" as ib {
-    type = ID3D11Buffer*
-    ByteWidth = 72 (36索引×2字节)
-    BindFlags = D3D11_BIND_INDEX_BUFFER
-}
-
-object "g_pConstantBuffer" as cb {
-    type = ID3D11Buffer*
-    ByteWidth = 192 (3个4x4矩阵)
-    BindFlags = D3D11_BIND_CONSTANT_BUFFER
-}
-
-object "g_pVertexShader" as vs {
-    type = ID3D11VertexShader*
-    EntryPoint = "VS"
-    Profile = "vs_4_0"
-}
-
-object "g_pPixelShader" as ps {
-    type = ID3D11PixelShader*
-    EntryPoint = "PS"
-    Profile = "ps_4_0"
-}
-
-object "g_pRenderTargetView" as rtv {
-    type = ID3D11RenderTargetView*
-    Resource = BackBuffer
-}
-
-device --> vb : CreateBuffer()
-device --> ib : CreateBuffer()
-device --> cb : CreateBuffer()
-device --> vs : CreateVertexShader()
-device --> ps : CreatePixelShader()
-device --> rtv : CreateRenderTargetView()
-swapchain --> rtv : GetBuffer()
-context ..> vb : IASetVertexBuffers()
-context ..> ib : IASetIndexBuffer()
-context ..> cb : VSSetConstantBuffers()
-context ..> vs : VSSetShader()
-context ..> ps : PSSetShader()
-context ..> rtv : OMSetRenderTargets()
-
-@enduml
-```
+---
 
 ---
 
 ### 6. 序列图 - 初始化流程
 
-```plantuml
-@startuml Tutorial04_InitSequence
-!theme plain
-autonumber
+![序列图 - 初始化流程](diagrams/Tutorial04_InitSequence.png)
 
-actor User
-participant "WinMain" as main
-participant "InitWindow" as initwin
-participant "InitDevice" as initdev
-participant "D3D11" as d3d11
-participant "Device" as device
-participant "Context" as context
-participant "SwapChain" as swap
+**说明**: 详细展示了从程序启动到完成DirectX 11初始化的完整流程。
 
-User -> main : 启动程序
-main -> initwin : 初始化窗口
-activate initwin
-initwin -> initwin : RegisterClassEx()
-initwin -> initwin : CreateWindow()
-initwin -> initwin : ShowWindow()
-initwin --> main : 返回 S_OK
-deactivate initwin
+[查看源文件](diagrams/06_init_sequence.puml)
 
-main -> initdev : 初始化 DirectX 设备
-activate initdev
-
-initdev -> initdev : GetClientRect() 获取窗口尺寸
-initdev -> initdev : 配置 DXGI_SWAP_CHAIN_DESC
-
-initdev -> d3d11 : D3D11CreateDeviceAndSwapChain()
-activate d3d11
-d3d11 -> device : 创建 ID3D11Device
-d3d11 -> context : 创建 ID3D11DeviceContext
-d3d11 -> swap : 创建 IDXGISwapChain
-d3d11 --> initdev : 返回设备、上下文、交换链
-deactivate d3d11
-
-initdev -> swap : GetBuffer(0) 获取后台缓冲区
-swap --> initdev : 返回 ID3D11Texture2D
-
-initdev -> device : CreateRenderTargetView() 创建渲染目标视图
-device --> initdev : 返回 g_pRenderTargetView
-
-initdev -> context : OMSetRenderTargets() 绑定渲染目标
-initdev -> context : RSSetViewports() 设置视口
-
-group 编译和创建着色器
-    initdev -> initdev : CompileShaderFromFile("VS")
-    initdev -> device : CreateVertexShader()
-    device --> initdev : g_pVertexShader
-    
-    initdev -> device : CreateInputLayout()
-    device --> initdev : g_pVertexLayout
-    
-    initdev -> context : IASetInputLayout()
-    
-    initdev -> initdev : CompileShaderFromFile("PS")
-    initdev -> device : CreatePixelShader()
-    device --> initdev : g_pPixelShader
-end
-
-group 创建缓冲区
-    initdev -> device : CreateBuffer(顶点缓冲区)
-    device --> initdev : g_pVertexBuffer
-    
-    initdev -> context : IASetVertexBuffers()
-    
-    initdev -> device : CreateBuffer(索引缓冲区)
-    device --> initdev : g_pIndexBuffer
-    
-    initdev -> context : IASetIndexBuffer()
-    
-    initdev -> context : IASetPrimitiveTopology(TRIANGLELIST)
-    
-    initdev -> device : CreateBuffer(常量缓冲区)
-    device --> initdev : g_pConstantBuffer
-end
-
-group 初始化矩阵
-    initdev -> initdev : g_World = XMMatrixIdentity()
-    initdev -> initdev : g_View = XMMatrixLookAtLH()
-    initdev -> initdev : g_Projection = XMMatrixPerspectiveFovLH()
-end
-
-initdev --> main : 返回 S_OK
-deactivate initdev
-
-main -> main : 进入消息循环
-
-@enduml
-```
+---
 
 ### 7. 序列图 - 渲染流程
 
-```plantuml
-@startuml Tutorial04_RenderSequence
-!theme plain
-autonumber
+![序列图 - 渲染流程](diagrams/Tutorial04_RenderSequence.png)
 
-participant "Message Loop" as loop
-participant "Render()" as render
-participant "Context" as context
-participant "SwapChain" as swap
-participant "GPU" as gpu
+**说明**: 展示了每一帧的渲染流程，从更新数据到呈现到屏幕。
 
-loop 每一帧
-    loop -> render : 调用 Render()
-    activate render
-    
-    render -> render : 计算时间 t
-    render -> render : g_World = XMMatrixRotationY(t)
-    
-    render -> context : ClearRenderTargetView() 清除后台缓冲区
-    context -> gpu : 清除命令
-    
-    group 更新常量缓冲区
-        render -> render : cb.mWorld = Transpose(g_World)
-        render -> render : cb.mView = Transpose(g_View)
-        render -> render : cb.mProjection = Transpose(g_Projection)
-        render -> context : UpdateSubresource(g_pConstantBuffer)
-        context -> gpu : 更新常量数据
-    end
-    
-    group 设置渲染状态
-        render -> context : VSSetShader(g_pVertexShader)
-        render -> context : VSSetConstantBuffers(g_pConstantBuffer)
-        render -> context : PSSetShader(g_pPixelShader)
-    end
-    
-    render -> context : DrawIndexed(36, 0, 0)
-    activate context
-    
-    context -> gpu : 提交绘制命令
-    activate gpu
-    
-    note right of gpu
-        GPU 渲染管线执行:
-        1. Input Assembler: 读取顶点和索引
-        2. Vertex Shader: 变换顶点
-        3. Rasterizer: 光栅化三角形
-        4. Pixel Shader: 计算像素颜色
-        5. Output Merger: 写入后台缓冲区
-    end note
-    
-    gpu --> context : 绘制完成
-    deactivate gpu
-    deactivate context
-    
-    render -> swap : Present(0, 0) 呈现到屏幕
-    activate swap
-    swap -> swap : 交换前后缓冲区
-    swap --> render : 返回
-    deactivate swap
-    
-    render --> loop : 返回
-    deactivate render
-end
+[查看源文件](diagrams/07_render_sequence.puml)
 
-@enduml
-```
+---
 
 ### 8. 序列图 - 清理流程
 
-```plantuml
-@startuml Tutorial04_CleanupSequence
-!theme plain
-autonumber
+![序列图 - 清理流程](diagrams/Tutorial04_CleanupSequence.png)
 
-participant "WinMain" as main
-participant "CleanupDevice()" as cleanup
-participant "Context" as context
-participant "Resources" as res
+**说明**: 展示了程序退出时的资源清理顺序。
 
-main -> cleanup : 程序退出，调用清理
-activate cleanup
+[查看源文件](diagrams/08_cleanup_sequence.puml)
 
-cleanup -> context : ClearState() 清除所有绑定状态
-activate context
-context -> context : 解除所有着色器
-context -> context : 解除所有缓冲区
-context -> context : 解除所有视图
-deactivate context
-
-group 释放缓冲区
-    cleanup -> res : g_pConstantBuffer->Release()
-    cleanup -> res : g_pVertexBuffer->Release()
-    cleanup -> res : g_pIndexBuffer->Release()
-end
-
-group 释放着色器和布局
-    cleanup -> res : g_pVertexLayout->Release()
-    cleanup -> res : g_pVertexShader->Release()
-    cleanup -> res : g_pPixelShader->Release()
-end
-
-group 释放视图和交换链
-    cleanup -> res : g_pRenderTargetView->Release()
-    cleanup -> res : g_pSwapChain->Release()
-end
-
-group 释放设备和上下文
-    cleanup -> res : g_pImmediateContext->Release()
-    cleanup -> res : g_pd3dDevice->Release()
-end
-
-cleanup --> main : 清理完成
-deactivate cleanup
-
-@enduml
-```
+---
 
 ### 9. 活动图 - 渲染管线流程
 
-```plantuml
-@startuml Tutorial04_PipelineActivity
-!theme plain
+![活动图 - 渲染管线流程](diagrams/Tutorial04_PipelineActivity.png)
 
-start
+**说明**: 展示了GPU渲染管线各阶段的活动流程。
 
-:更新时间变量 t;
+[查看源文件](diagrams/09_pipeline_activity.puml)
 
-:计算世界矩阵
-g_World = RotationY(t);
-
-:清除渲染目标
-ClearRenderTargetView();
-
-partition "更新常量缓冲区" {
-    :转置矩阵
-    cb.mWorld = Transpose(g_World)
-    cb.mView = Transpose(g_View)
-    cb.mProjection = Transpose(g_Projection);
-    
-    :上传到 GPU
-    UpdateSubresource();
-}
-
-partition "设置渲染管线" {
-    :绑定顶点着色器
-    VSSetShader();
-    
-    :绑定常量缓冲区到 VS
-    VSSetConstantBuffers();
-    
-    :绑定像素着色器
-    PSSetShader();
-}
-
-partition "GPU 渲染管线" {
-    :Input Assembler
-    读取顶点和索引数据;
-    
-    :Vertex Shader
-    应用 World * View * Projection 变换;
-    
-    :Rasterizer
-    三角形光栅化，生成像素片段;
-    
-    :Pixel Shader
-    输出顶点颜色;
-    
-    :Output Merger
-    写入后台缓冲区;
-}
-
-:交换前后缓冲区
-Present();
-
-:显示到屏幕;
-
-stop
-
-@enduml
-```
+---
 
 ### 10. 状态图 - 应用程序生命周期
 
-```plantuml
-@startuml Tutorial04_StateChart
-!theme plain
+![状态图 - 应用程序生命周期](diagrams/Tutorial04_StateChart.png)
 
-[*] --> Initializing : WinMain 启动
+**说明**: 展示了应用程序从初始化、运行到清理的完整状态转换。
 
-state Initializing {
-    [*] --> CreateWindow
-    CreateWindow --> CreateDevice
-    CreateDevice --> CreateResources
-    CreateResources --> CompileShaders
-    CompileShaders --> CreateBuffers
-    CreateBuffers --> InitMatrices
-    InitMatrices --> [*]
-}
+[查看源文件](diagrams/10_state_chart.puml)
 
-Initializing --> Running : 初始化成功
-
-state Running {
-    [*] --> MessageLoop
-    
-    state MessageLoop {
-        [*] --> CheckMessage
-        CheckMessage --> ProcessMessage : 有消息
-        ProcessMessage --> CheckMessage
-        CheckMessage --> Rendering : 无消息
-        
-        state Rendering {
-            [*] --> UpdateTime
-            UpdateTime --> UpdateWorld
-            UpdateWorld --> ClearScreen
-            ClearScreen --> UpdateConstantBuffer
-            UpdateConstantBuffer --> SetShaders
-            SetShaders --> Draw
-            Draw --> Present
-            Present --> [*]
-        }
-        
-        Rendering --> CheckMessage
-    }
-    
-    MessageLoop --> [*] : 收到 WM_QUIT
-}
-
-Running --> Cleanup : 退出消息循环
-
-state Cleanup {
-    [*] --> ClearState
-    ClearState --> ReleaseBuffers
-    ReleaseBuffers --> ReleaseShaders
-    ReleaseShaders --> ReleaseViews
-    ReleaseViews --> ReleaseDevice
-    ReleaseDevice --> [*]
-}
-
-Cleanup --> [*] : 程序结束
-
-note right of Running
-    主循环状态
-    - 处理窗口消息
-    - 渲染3D场景
-    - 每帧更新旋转
-end note
-
-note right of Cleanup
-    清理所有资源
-    - 释放 COM 接口
-    - 避免内存泄漏
-end note
-
-@enduml
-```
+---
 
 ---
 

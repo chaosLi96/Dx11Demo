@@ -1,0 +1,56 @@
+@startuml Tutorial04_Architecture
+!theme plain
+skinparam defaultFontName Microsoft YaHei
+
+rectangle "应用程序层" as app {
+    rectangle "Windows 消息循环" as msgloop
+    rectangle "渲染主循环" as renderloop
+}
+
+rectangle "初始化层" as init {
+    rectangle "窗口初始化" as wininit
+    rectangle "设备初始化" as devinit
+    rectangle "资源创建" as rescreate
+}
+
+rectangle "DirectX 11 API 层" as dx11 {
+    rectangle "设备管理" as devmgmt {
+        rectangle "ID3D11Device" as dev
+        rectangle "ID3D11DeviceContext" as ctx
+    }
+    
+    rectangle "资源管理" as resmgmt {
+        rectangle "缓冲区" as buffers
+        rectangle "着色器" as shaders
+        rectangle "视图" as views
+    }
+    
+    rectangle "渲染管线" as pipeline {
+        rectangle "IA阶段" as ia
+        rectangle "VS阶段" as vs
+        rectangle "Rasterizer" as rs
+        rectangle "PS阶段" as ps
+        rectangle "OM阶段" as om
+    }
+}
+
+rectangle "DXGI 层" as dxgi {
+    rectangle "IDXGISwapChain" as sc
+    rectangle "后台缓冲区" as bb
+}
+
+rectangle "GPU 硬件" as gpu {
+    rectangle "图形处理单元" as gp
+    rectangle "显存" as vram
+}
+
+app --> init : 调用初始化
+init --> dx11 : 创建设备和资源
+dx11 --> dxgi : 管理交换链
+dxgi --> gpu : 驱动调用
+renderloop --> ctx : 每帧渲染命令
+ctx --> pipeline : 执行渲染管线
+pipeline --> gpu : 提交绘制命令
+sc --> bb : 交换缓冲区
+
+@enduml

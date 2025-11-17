@@ -1,0 +1,90 @@
+@startuml Tutorial04_InitSequence
+!theme plain
+skinparam defaultFontName Microsoft YaHei
+autonumber
+
+actor User
+participant "WinMain" as main
+participant "InitWindow" as initwin
+participant "InitDevice" as initdev
+participant "D3D11" as d3d11
+participant "Device" as device
+participant "Context" as context
+participant "SwapChain" as swap
+
+User -> main : 启动程序
+main -> initwin : 初始化窗口
+activate initwin
+initwin -> initwin : RegisterClassEx()
+initwin -> initwin : CreateWindow()
+initwin -> initwin : ShowWindow()
+initwin --> main : 返回 S_OK
+deactivate initwin
+
+main -> initdev : 初始化 DirectX 设备
+activate initdev
+
+initdev -> initdev : GetClientRect() 获取窗口尺寸
+initdev -> initdev : 配置 DXGI_SWAP_CHAIN_DESC
+
+initdev -> d3d11 : D3D11CreateDeviceAndSwapChain()
+activate d3d11
+d3d11 -> device : 创建 ID3D11Device
+d3d11 -> context : 创建 ID3D11DeviceContext
+d3d11 -> swap : 创建 IDXGISwapChain
+d3d11 --> initdev : 返回设备、上下文、交换链
+deactivate d3d11
+
+initdev -> swap : GetBuffer(0) 获取后台缓冲区
+swap --> initdev : 返回 ID3D11Texture2D
+
+initdev -> device : CreateRenderTargetView() 创建渲染目标视图
+device --> initdev : 返回 g_pRenderTargetView
+
+initdev -> context : OMSetRenderTargets() 绑定渲染目标
+initdev -> context : RSSetViewports() 设置视口
+
+group 编译和创建着色器
+    initdev -> initdev : CompileShaderFromFile("VS")
+    initdev -> device : CreateVertexShader()
+    device --> initdev : g_pVertexShader
+    
+    initdev -> device : CreateInputLayout()
+    device --> initdev : g_pVertexLayout
+    
+    initdev -> context : IASetInputLayout()
+    
+    initdev -> initdev : CompileShaderFromFile("PS")
+    initdev -> device : CreatePixelShader()
+    device --> initdev : g_pPixelShader
+end
+
+group 创建缓冲区
+    initdev -> device : CreateBuffer(顶点缓冲区)
+    device --> initdev : g_pVertexBuffer
+    
+    initdev -> context : IASetVertexBuffers()
+    
+    initdev -> device : CreateBuffer(索引缓冲区)
+    device --> initdev : g_pIndexBuffer
+    
+    initdev -> context : IASetIndexBuffer()
+    
+    initdev -> context : IASetPrimitiveTopology(TRIANGLELIST)
+    
+    initdev -> device : CreateBuffer(常量缓冲区)
+    device --> initdev : g_pConstantBuffer
+end
+
+group 初始化矩阵
+    initdev -> initdev : g_World = XMMatrixIdentity()
+    initdev -> initdev : g_View = XMMatrixLookAtLH()
+    initdev -> initdev : g_Projection = XMMatrixPerspectiveFovLH()
+end
+
+initdev --> main : 返回 S_OK
+deactivate initdev
+
+main -> main : 进入消息循环
+
+@enduml

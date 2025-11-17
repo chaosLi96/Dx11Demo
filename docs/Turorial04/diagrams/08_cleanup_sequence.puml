@@ -1,0 +1,46 @@
+@startuml Tutorial04_CleanupSequence
+!theme plain
+skinparam defaultFontName Microsoft YaHei
+autonumber
+
+participant "WinMain" as main
+participant "CleanupDevice()" as cleanup
+participant "Context" as context
+participant "Resources" as res
+
+main -> cleanup : 程序退出，调用清理
+activate cleanup
+
+cleanup -> context : ClearState() 清除所有绑定状态
+activate context
+context -> context : 解除所有着色器
+context -> context : 解除所有缓冲区
+context -> context : 解除所有视图
+deactivate context
+
+group 释放缓冲区
+    cleanup -> res : g_pConstantBuffer->Release()
+    cleanup -> res : g_pVertexBuffer->Release()
+    cleanup -> res : g_pIndexBuffer->Release()
+end
+
+group 释放着色器和布局
+    cleanup -> res : g_pVertexLayout->Release()
+    cleanup -> res : g_pVertexShader->Release()
+    cleanup -> res : g_pPixelShader->Release()
+end
+
+group 释放视图和交换链
+    cleanup -> res : g_pRenderTargetView->Release()
+    cleanup -> res : g_pSwapChain->Release()
+end
+
+group 释放设备和上下文
+    cleanup -> res : g_pImmediateContext->Release()
+    cleanup -> res : g_pd3dDevice->Release()
+end
+
+cleanup --> main : 清理完成
+deactivate cleanup
+
+@enduml

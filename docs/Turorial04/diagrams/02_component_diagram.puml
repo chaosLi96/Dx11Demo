@@ -1,0 +1,84 @@
+@startuml Tutorial04_ComponentDiagram
+!theme plain
+skinparam defaultFontName Microsoft YaHei
+
+package "Application Layer" {
+    [WinMain] as main
+    [Window Procedure] as winproc
+    [Render Loop] as render
+}
+
+package "Initialization" {
+    [InitWindow] as initwin
+    [InitDevice] as initdev
+    [CompileShader] as compile
+}
+
+package "DirectX 11 Device" {
+    [ID3D11Device] as device
+    [ID3D11DeviceContext] as context
+    [IDXGISwapChain] as swapchain
+}
+
+package "Resources" {
+    [Vertex Buffer] as vb
+    [Index Buffer] as ib
+    [Constant Buffer] as cb
+    [Vertex Shader] as vs
+    [Pixel Shader] as ps
+    [Input Layout] as layout
+    [Render Target View] as rtv
+}
+
+package "Rendering Pipeline" {
+    [Input Assembler] as ia
+    [Vertex Shader Stage] as vsstage
+    [Rasterizer] as raster
+    [Pixel Shader Stage] as psstage
+    [Output Merger] as om
+}
+
+package "HLSL Files" {
+    [Tutorial04.fx] as shader
+}
+
+main --> initwin
+main --> initdev
+main --> render
+
+initdev --> device : creates
+initdev --> context : creates
+initdev --> swapchain : creates
+
+device --> vb : CreateBuffer
+device --> ib : CreateBuffer
+device --> cb : CreateBuffer
+device --> vs : CreateVertexShader
+device --> ps : CreatePixelShader
+device --> layout : CreateInputLayout
+device --> rtv : CreateRenderTargetView
+
+compile --> shader : reads
+shader --> vs : compiles VS()
+shader --> ps : compiles PS()
+
+context --> ia : IASet系列
+context --> vsstage : VSSet系列
+context --> psstage : PSSetShader
+context --> om : OMSet系列
+
+ia --> vb : binds
+ia --> ib : binds
+ia --> layout : binds
+
+vsstage --> vs : binds
+vsstage --> cb : binds
+
+psstage --> ps : binds
+
+om --> rtv : binds
+
+render --> context : uses
+context --> swapchain : Present()
+
+@enduml

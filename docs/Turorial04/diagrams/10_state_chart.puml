@@ -1,0 +1,71 @@
+@startuml Tutorial04_StateChart
+!theme plain
+skinparam defaultFontName Microsoft YaHei
+
+[*] --> Initializing : WinMain 启动
+
+state Initializing {
+    [*] --> CreateWindow
+    CreateWindow --> CreateDevice
+    CreateDevice --> CreateResources
+    CreateResources --> CompileShaders
+    CompileShaders --> CreateBuffers
+    CreateBuffers --> InitMatrices
+    InitMatrices --> [*]
+}
+
+Initializing --> Running : 初始化成功
+
+state Running {
+    [*] --> MessageLoop
+    
+    state MessageLoop {
+        [*] --> CheckMessage
+        CheckMessage --> ProcessMessage : 有消息
+        ProcessMessage --> CheckMessage
+        CheckMessage --> Rendering : 无消息
+        
+        state Rendering {
+            [*] --> UpdateTime
+            UpdateTime --> UpdateWorld
+            UpdateWorld --> ClearScreen
+            ClearScreen --> UpdateConstantBuffer
+            UpdateConstantBuffer --> SetShaders
+            SetShaders --> Draw
+            Draw --> Present
+            Present --> [*]
+        }
+        
+        Rendering --> CheckMessage
+    }
+    
+    MessageLoop --> [*] : 收到 WM_QUIT
+}
+
+Running --> Cleanup : 退出消息循环
+
+state Cleanup {
+    [*] --> ClearState
+    ClearState --> ReleaseBuffers
+    ReleaseBuffers --> ReleaseShaders
+    ReleaseShaders --> ReleaseViews
+    ReleaseViews --> ReleaseDevice
+    ReleaseDevice --> [*]
+}
+
+Cleanup --> [*] : 程序结束
+
+note right of Running
+    主循环状态
+    - 处理窗口消息
+    - 渲染3D场景
+    - 每帧更新旋转
+end note
+
+note right of Cleanup
+    清理所有资源
+    - 释放 COM 接口
+    - 避免内存泄漏
+end note
+
+@enduml

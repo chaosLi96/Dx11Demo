@@ -1,0 +1,45 @@
+@startuml Tutorial04_Deployment
+!theme plain
+skinparam defaultFontName Microsoft YaHei
+
+node "Tutorial04 项目" {
+    artifact "Tutorial04.cpp" as cpp
+    note right of cpp
+        主程序代码
+        DirectX 初始化
+        渲染循环
+    end note
+    
+    artifact "Tutorial04.fx" as fx
+    note right of fx
+        HLSL 着色器代码
+        VS() 顶点着色器
+        PS() 像素着色器
+    end note
+    
+    artifact "resource.h" as rh
+    artifact "Tutorial04.rc" as rc
+    
+    folder "DXUT" as dxut {
+        artifact "DXUT 辅助库" as dxutlib
+    }
+}
+
+node "编译产物" {
+    artifact "Tutorial04.exe" as exe
+    artifact "编译后的着色器" as cso
+}
+
+node "运行时依赖" {
+    artifact "d3d11.dll" as d3d11
+    artifact "dxgi.dll" as dxgidll
+    artifact "d3dcompiler.dll" as d3dcomp
+}
+
+cpp --> exe : 编译
+fx --> cso : 编译
+exe --> d3d11 : 链接
+exe --> dxgidll : 链接
+exe --> d3dcomp : 运行时加载
+
+@enduml

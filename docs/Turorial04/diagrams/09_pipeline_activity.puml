@@ -1,0 +1,60 @@
+@startuml Tutorial04_PipelineActivity
+!theme plain
+skinparam defaultFontName Microsoft YaHei
+
+start
+
+:更新时间变量 t;
+
+:计算世界矩阵
+g_World = RotationY(t);
+
+:清除渲染目标
+ClearRenderTargetView();
+
+partition "更新常量缓冲区" {
+    :转置矩阵
+    cb.mWorld = Transpose(g_World)
+    cb.mView = Transpose(g_View)
+    cb.mProjection = Transpose(g_Projection);
+    
+    :上传到 GPU
+    UpdateSubresource();
+}
+
+partition "设置渲染管线" {
+    :绑定顶点着色器
+    VSSetShader();
+    
+    :绑定常量缓冲区到 VS
+    VSSetConstantBuffers();
+    
+    :绑定像素着色器
+    PSSetShader();
+}
+
+partition "GPU 渲染管线" {
+    :Input Assembler
+    读取顶点和索引数据;
+    
+    :Vertex Shader
+    应用 World * View * Projection 变换;
+    
+    :Rasterizer
+    三角形光栅化，生成像素片段;
+    
+    :Pixel Shader
+    输出顶点颜色;
+    
+    :Output Merger
+    写入后台缓冲区;
+}
+
+:交换前后缓冲区
+Present();
+
+:显示到屏幕;
+
+stop
+
+@enduml

@@ -1,0 +1,71 @@
+@startuml Tutorial04_ObjectDiagram
+!theme plain
+skinparam defaultFontName Microsoft YaHei
+
+object "g_pd3dDevice" as device {
+    type = ID3D11Device*
+    功能 = 创建资源
+}
+
+object "g_pImmediateContext" as context {
+    type = ID3D11DeviceContext*
+    功能 = 执行渲染命令
+}
+
+object "g_pSwapChain" as swapchain {
+    type = IDXGISwapChain*
+    BufferCount = 1
+    Format = DXGI_FORMAT_R8G8B8A8_UNORM
+}
+
+object "g_pVertexBuffer" as vb {
+    type = ID3D11Buffer*
+    Usage = D3D11_USAGE_DEFAULT
+    ByteWidth = 224 (8顶点×28字节)
+    BindFlags = D3D11_BIND_VERTEX_BUFFER
+}
+
+object "g_pIndexBuffer" as ib {
+    type = ID3D11Buffer*
+    ByteWidth = 72 (36索引×2字节)
+    BindFlags = D3D11_BIND_INDEX_BUFFER
+}
+
+object "g_pConstantBuffer" as cb {
+    type = ID3D11Buffer*
+    ByteWidth = 192 (3个4x4矩阵)
+    BindFlags = D3D11_BIND_CONSTANT_BUFFER
+}
+
+object "g_pVertexShader" as vs {
+    type = ID3D11VertexShader*
+    EntryPoint = "VS"
+    Profile = "vs_4_0"
+}
+
+object "g_pPixelShader" as ps {
+    type = ID3D11PixelShader*
+    EntryPoint = "PS"
+    Profile = "ps_4_0"
+}
+
+object "g_pRenderTargetView" as rtv {
+    type = ID3D11RenderTargetView*
+    Resource = BackBuffer
+}
+
+device --> vb : CreateBuffer()
+device --> ib : CreateBuffer()
+device --> cb : CreateBuffer()
+device --> vs : CreateVertexShader()
+device --> ps : CreatePixelShader()
+device --> rtv : CreateRenderTargetView()
+swapchain --> rtv : GetBuffer()
+context ..> vb : IASetVertexBuffers()
+context ..> ib : IASetIndexBuffer()
+context ..> cb : VSSetConstantBuffers()
+context ..> vs : VSSetShader()
+context ..> ps : PSSetShader()
+context ..> rtv : OMSetRenderTargets()
+
+@enduml

@@ -1,0 +1,65 @@
+@startuml Tutorial04_RenderSequence
+!theme plain
+skinparam defaultFontName Microsoft YaHei
+autonumber
+
+participant "Message Loop" as loop
+participant "Render()" as render
+participant "Context" as context
+participant "SwapChain" as swap
+participant "GPU" as gpu
+
+loop 每一帧
+    loop -> render : 调用 Render()
+    activate render
+    
+    render -> render : 计算时间 t
+    render -> render : g_World = XMMatrixRotationY(t)
+    
+    render -> context : ClearRenderTargetView() 清除后台缓冲区
+    context -> gpu : 清除命令
+    
+    group 更新常量缓冲区
+        render -> render : cb.mWorld = Transpose(g_World)
+        render -> render : cb.mView = Transpose(g_View)
+        render -> render : cb.mProjection = Transpose(g_Projection)
+        render -> context : UpdateSubresource(g_pConstantBuffer)
+        context -> gpu : 更新常量数据
+    end
+    
+    group 设置渲染状态
+        render -> context : VSSetShader(g_pVertexShader)
+        render -> context : VSSetConstantBuffers(g_pConstantBuffer)
+        render -> context : PSSetShader(g_pPixelShader)
+    end
+    
+    render -> context : DrawIndexed(36, 0, 0)
+    activate context
+    
+    context -> gpu : 提交绘制命令
+    activate gpu
+    
+    note right of gpu
+        GPU 渲染管线执行:
+        1. Input Assembler: 读取顶点和索引
+        2. Vertex Shader: 变换顶点
+        3. Rasterizer: 光栅化三角形
+        4. Pixel Shader: 计算像素颜色
+        5. Output Merger: 写入后台缓冲区
+    end note
+    
+    gpu --> context : 绘制完成
+    deactivate gpu
+    deactivate context
+    
+    render -> swap : Present(0, 0) 呈现到屏幕
+    activate swap
+    swap -> swap : 交换前后缓冲区
+    swap --> render : 返回
+    deactivate swap
+    
+    render --> loop : 返回
+    deactivate render
+end
+
+@enduml
